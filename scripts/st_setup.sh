@@ -93,3 +93,32 @@ restarts, redeploys, and new pods that mount this volume.
 To change it: set the ST_PASSWORD environment variable on the pod and restart.
 EOF
 }
+
+st_config_path() {
+  echo "$(st_state_dir)/config/config.yaml"
+}
+
+# SillyTavern resolves config as CLI args > SILLYTAVERN_* env > config.yaml >
+# defaults, so exporting here beats editing YAML and cannot corrupt a file.
+# Defaults being overridden: listen=false, whitelistMode=true,
+# basicAuthMode=false, browserLaunch.enabled=true.
+st_export_config() {
+  export SILLYTAVERN_LISTEN="true"
+  export SILLYTAVERN_WHITELISTMODE="false"
+  # Deliberately not configurable. A pod's URL is public and this instance
+  # holds a live API key; there is no supported way to serve it unauthenticated.
+  export SILLYTAVERN_BASICAUTHMODE="true"
+  export SILLYTAVERN_BASICAUTHUSER_USERNAME="$ST_RESOLVED_USER"
+  export SILLYTAVERN_BASICAUTHUSER_PASSWORD="$ST_RESOLVED_PASSWORD"
+  export SILLYTAVERN_BROWSERLAUNCH_ENABLED="false"
+  export SILLYTAVERN_PORT="${ST_PORT:-8000}"
+  SILLYTAVERN_DATAROOT="$(st_state_dir)/data"
+  export SILLYTAVERN_DATAROOT
+}
+
+# The one entry point callers need.
+st_prepare() {
+  st_seed_state
+  st_resolve_credentials
+  st_export_config
+}

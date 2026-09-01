@@ -83,4 +83,26 @@ assert_eq "$ST_RESOLVED_PASSWORD" "rotated-secret" "the rotated password was per
 assert_eq "$ST_RESOLVED_USER" "chris" "the rotated username was persisted"
 cleanup_sandbox
 
+echo "-- st_prepare exports the SillyTavern server config"
+new_sandbox
+export ST_PASSWORD="known-pw"
+st_prepare
+assert_eq "$SILLYTAVERN_LISTEN"                   "true"       "listen enabled"
+assert_eq "$SILLYTAVERN_WHITELISTMODE"            "false"      "whitelist disabled (useless behind a proxy)"
+assert_eq "$SILLYTAVERN_BASICAUTHMODE"            "true"       "basic auth enabled"
+assert_eq "$SILLYTAVERN_BASICAUTHUSER_USERNAME"   "user"       "auth username exported"
+assert_eq "$SILLYTAVERN_BASICAUTHUSER_PASSWORD"   "known-pw"   "auth password exported"
+assert_eq "$SILLYTAVERN_BROWSERLAUNCH_ENABLED"    "false"      "browser launch disabled"
+assert_eq "$SILLYTAVERN_PORT"                     "8000"       "port exported"
+assert_eq "$SILLYTAVERN_DATAROOT" "$WORKSPACE/sillytavern/data" "data root points at the volume"
+assert_eq "$(st_config_path)" "$WORKSPACE/sillytavern/config/config.yaml" "config path is on the volume"
+cleanup_sandbox
+
+echo "-- basic auth cannot be turned off"
+new_sandbox
+export ST_NO_AUTH=1 SILLYTAVERN_BASICAUTHMODE=false
+st_prepare
+assert_eq "$SILLYTAVERN_BASICAUTHMODE" "true" "auth stays on even when something tries to disable it"
+cleanup_sandbox
+
 echo "SUITE_RESULT $TESTS_RUN $TESTS_FAILED $TESTS_SKIPPED"
