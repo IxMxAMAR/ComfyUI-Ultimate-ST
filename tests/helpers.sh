@@ -4,6 +4,32 @@
 
 TESTS_RUN=0
 TESTS_FAILED=0
+TESTS_SKIPPED=0
+
+# Git Bash on Windows cannot create real symlinks without Developer Mode; it
+# silently copies the directory instead. Symlink behaviour is therefore only
+# assertable on Linux — which is where CI runs and where the image actually
+# executes, so the assertions below are still enforced where it counts.
+_SYMLINKS_OK=""
+symlinks_supported() {
+  if [ -z "$_SYMLINKS_OK" ]; then
+    local d
+    d="$(mktemp -d)"
+    mkdir -p "$d/t"
+    if ln -sfn "$d/t" "$d/l" 2>/dev/null && [ -L "$d/l" ]; then
+      _SYMLINKS_OK=yes
+    else
+      _SYMLINKS_OK=no
+    fi
+    rm -rf "$d"
+  fi
+  [ "$_SYMLINKS_OK" = "yes" ]
+}
+
+skip() {
+  TESTS_SKIPPED=$((TESTS_SKIPPED + 1))
+  echo "  SKIP: $1"
+}
 
 fail() {
   TESTS_FAILED=$((TESTS_FAILED + 1))
@@ -42,6 +68,10 @@ assert_file() {
 
 assert_symlink_to() {
   local link="$1" target="$2" label="$3"
+  if ! symlinks_supported; then
+    skip "$label (no symlink support on this platform; enforced in CI on Linux)"
+    return 0
+  fi
   TESTS_RUN=$((TESTS_RUN + 1))
   if [ -L "$link" ] && [ "$(readlink "$link")" = "$target" ]; then
     echo "  ok: $label"
