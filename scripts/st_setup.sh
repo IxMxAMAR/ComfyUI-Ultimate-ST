@@ -35,7 +35,7 @@ st_link_dir() {
 st_seed_state() {
   local state
   state="$(st_state_dir)"
-  mkdir -p "$state/config"
+  mkdir -p "$state/config" "$state/logs"
   st_link_dir "$ST_APP/data"                                  "$state/data"
   st_link_dir "$ST_APP/plugins"                               "$state/plugins"
   st_link_dir "$ST_APP/public/scripts/extensions/third-party" "$state/extensions"
@@ -96,6 +96,14 @@ EOF
 
 st_config_path() {
   echo "$(st_state_dir)/config/config.yaml"
+}
+
+# The log goes on the volume, not /var/log, so it is readable through the
+# filebrowser UI (which is rooted at $WORKSPACE). Without this, diagnosing a
+# SillyTavern problem needs SSH or a Jupyter terminal — too much to ask of
+# someone deploying this for the first time. It also survives a pod restart.
+st_log_path() {
+  echo "$(st_state_dir)/logs/sillytavern.log"
 }
 
 # SillyTavern resolves config as CLI args > SILLYTAVERN_* env > config.yaml >

@@ -98,6 +98,13 @@ assert_eq "$SILLYTAVERN_DATAROOT" "$WORKSPACE/sillytavern/data" "data root point
 assert_eq "$(st_config_path)" "$WORKSPACE/sillytavern/config/config.yaml" "config path is on the volume"
 cleanup_sandbox
 
+echo "-- the SillyTavern log is reachable from the file browser"
+new_sandbox
+st_prepare
+assert_eq "$(st_log_path)" "$WORKSPACE/sillytavern/logs/sillytavern.log" "log lives on the volume, under the filebrowser root"
+assert_true "log directory is created up front" test -d "$WORKSPACE/sillytavern/logs"
+cleanup_sandbox
+
 echo "-- basic auth cannot be turned off"
 new_sandbox
 export ST_NO_AUTH=1 SILLYTAVERN_BASICAUTHMODE=false

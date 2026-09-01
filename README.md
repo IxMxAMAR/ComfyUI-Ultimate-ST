@@ -161,9 +161,21 @@ before ComfyUI finished its ~90 second startup, and your browser cached the
 error. Hard-refresh (Ctrl+Shift+R) or open it in a private window. ComfyUI is
 the slowest service to boot; JupyterLab and filebrowser come up immediately.
 
-**SillyTavern won't load.** Check `/var/log/sillytavern.log` over SSH or in
-JupyterLab. The service restarts itself automatically if it crashes, so give it
-a few seconds before investigating.
+**SillyTavern won't load.** Read its log at
+`/workspace/sillytavern/logs/sillytavern.log` — it is on the volume, so you can
+open it straight from the file browser on port 8080, no SSH needed. (It is also
+symlinked to `/var/log/sillytavern.log` if you are on a terminal.) The service
+restarts itself automatically if it crashes, so give it a few seconds before
+investigating.
+
+**"Could not fetch OpenRouter credits", or the model dropdown is empty.** Click
+**Connect** first. SillyTavern saves the API key server-side when you connect,
+and both the credit lookup and the model list use the *saved* key — so before
+you press Connect they will fail even though the key is correct.
+
+**Connected, but generations fail.** Check your credit balance at
+[openrouter.ai/credits](https://openrouter.ai/credits). With a zero balance only
+models tagged `:free` will actually run.
 
 **The browser never asks for a password.** It probably cached your credentials
 from an earlier session. That is expected.

@@ -54,6 +54,9 @@ else
   . /opt/scripts/st_setup.sh
   st_prepare
   ST_CFG="$(st_config_path)"
+  ST_LOG="$(st_log_path)"
+  # Keep the conventional path working for anyone who SSHes in expecting it.
+  ln -sfn "$ST_LOG" /var/log/sillytavern.log
 
   # A pod operator is not necessarily able to revive a dead Node process over
   # SSH, and restarting the whole pod costs a ~90s ComfyUI reload — so keep
@@ -61,9 +64,9 @@ else
   (
     cd /SillyTavern || exit 1
     while true; do
-      node server.js --configPath "$ST_CFG" >> /var/log/sillytavern.log 2>&1
+      node server.js --configPath "$ST_CFG" >> "$ST_LOG" 2>&1
       rc=$?
-      echo "[start] SillyTavern exited (rc=$rc), restarting in 5s" >> /var/log/sillytavern.log
+      echo "[start] SillyTavern exited (rc=$rc), restarting in 5s" >> "$ST_LOG"
       sleep 5
     done
   ) &
