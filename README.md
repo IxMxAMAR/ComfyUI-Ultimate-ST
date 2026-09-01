@@ -38,6 +38,11 @@ ComfyUI on first use.
 You need a RunPod account with credit, and an OpenRouter API key if you want to
 chat.
 
+> **Ready-made RunPod template:** `ComfyUI Ultimate + SillyTavern`
+> (id `uw8jq78pl7`) — deploy it directly at
+> **<https://console.runpod.io/deploy?template=uw8jq78pl7>**
+> or search for it by name under Templates in the RunPod console.
+
 1. **Create a network volume** in RunPod (Storage → Network Volumes). 50 GB is a
    reasonable start; image models are large. Pick a datacenter with RTX-class
    GPUs available.
@@ -125,6 +130,10 @@ All are optional.
 | `HF_TOKEN` | — | For gated Hugging Face models. |
 | `COMFY_ARGS` | — | Extra ComfyUI command-line arguments. |
 | `PUBLIC_KEY` | injected by RunPod | SSH public key. |
+
+None of these are pre-filled on the template on purpose — an env var shipped with
+a value would give every deployer the same SillyTavern password. Add the ones you
+want in the RunPod deploy form under *Environment Variables*.
 
 ## What persists
 
