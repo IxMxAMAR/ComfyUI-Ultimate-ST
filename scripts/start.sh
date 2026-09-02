@@ -76,6 +76,12 @@ else
   echo "[start]   (also saved to $(st_state_dir)/CREDENTIALS.txt — readable via filebrowser on :8080)"
 fi
 
+# --- Restore user-pinned custom nodes onto LOCAL disk (see comfy_nodes.txt) ---
+# Runs after the light services are up so their logs are watchable while this
+# works, but before ComfyUI imports. Never fatal: a dead node repo must not stop
+# the pod booting.
+bash /opt/scripts/restore_nodes.sh || echo "[start] WARN node restore reported an error; continuing"
+
 # --- ComfyUI (foreground). Attention: prefer the KJNodes 'Patch Sage Attention'
 #     node over the global --use-sage-attention flag. Override via COMFY_ARGS. ---
 cd /ComfyUI

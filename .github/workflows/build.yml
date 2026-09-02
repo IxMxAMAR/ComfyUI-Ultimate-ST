@@ -66,6 +66,9 @@ jobs:
       - name: SillyTavern auth gate (401 without creds, 200 with)
         run: docker run --rm --entrypoint bash ${{ env.IMAGE }}:ci-${{ github.sha }} /opt/scripts/ci_st_gate.sh
 
+      - name: Custom-node manifest gate (baked packs protected, bad repo survivable)
+        run: docker run --rm --entrypoint bash ${{ env.IMAGE }}:ci-${{ github.sha }} /opt/scripts/ci_nodes_gate.sh
+
       - name: ComfyUI node-import gate (inherited from the base image, OFFLINE)
         run: docker run --rm --network none --entrypoint bash ${{ env.IMAGE }}:ci-${{ github.sha }} /opt/scripts/ci_node_import_gate.sh
 

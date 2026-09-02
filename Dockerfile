@@ -30,9 +30,16 @@ RUN ST_SHA="$(awk 'NF && $1 !~ /^#/ {print $1; exit}' /opt/st_pin.txt)" \
 
 # ---- 3. Scripts ----
 COPY scripts/st_setup.sh /opt/scripts/st_setup.sh
+COPY scripts/node_manifest.sh /opt/scripts/node_manifest.sh
+COPY scripts/restore_nodes.sh /opt/scripts/restore_nodes.sh
 COPY scripts/ci_st_gate.sh /opt/scripts/ci_st_gate.sh
+COPY scripts/ci_nodes_gate.sh /opt/scripts/ci_nodes_gate.sh
+COPY scripts/comfy-nodes /usr/local/bin/comfy-nodes
 COPY scripts/start.sh /opt/start.sh
-RUN chmod +x /opt/start.sh /opt/scripts/st_setup.sh /opt/scripts/ci_st_gate.sh
+RUN chmod +x /opt/start.sh /usr/local/bin/comfy-nodes \
+      /opt/scripts/st_setup.sh /opt/scripts/node_manifest.sh \
+      /opt/scripts/restore_nodes.sh /opt/scripts/ci_st_gate.sh \
+      /opt/scripts/ci_nodes_gate.sh
 
 # ---- 4. Build-time sanity: deps present and the entrypoint is well-formed ----
 RUN test -d /SillyTavern/node_modules && echo "SillyTavern deps OK" \

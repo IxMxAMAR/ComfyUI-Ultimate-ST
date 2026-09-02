@@ -135,12 +135,70 @@ None of these are pre-filled on the template on purpose — an env var shipped w
 a value would give every deployer the same SillyTavern password. Add the ones you
 want in the RunPod deploy form under *Environment Variables*.
 
+## Keeping custom nodes across rebuilds
+
+ComfyUI, its Python environment and the 29 bundled node packs live **inside the
+image, on the pod's local NVMe** — not on the network volume. That is why this
+image starts far faster than templates which install ComfyUI onto `/workspace`
+and then import tens of thousands of files over network storage on every boot.
+
+The trade-off: anything you install through ComfyUI-Manager also lands on local
+disk, and local disk is wiped when the pod is destroyed.
+
+The fix is a pin list, not a symlink — so your nodes still load from fast local
+disk, and the list works on any pod, any volume, any account.
+
+**The one command you need.** Install nodes through the Manager UI exactly as
+normal, then:
+
+```bash
+comfy-nodes freeze
+```
+
+That records every node you added — at the exact commit you are running — into
+`/workspace/comfy_nodes.txt`. On every future boot they are cloned back and
+their requirements reinstalled, before ComfyUI starts.
+
+Run it from a JupyterLab terminal (port 8888 → File → New → Terminal) or over SSH.
+
+**The rest of the commands:**
+
+| Command | Does |
+|---------|------|
+| `comfy-nodes status` | Shows which installed nodes are **not** yet recorded — i.e. what you would lose on a rebuild |
+| `comfy-nodes freeze` | Records everything you have installed |
+| `comfy-nodes add <git-url> [sha]` | Installs a node and records it, in one step |
+| `comfy-nodes list` | Shows what is pinned |
+| `comfy-nodes restore` | Re-runs the restore now |
+
+You can also edit `/workspace/comfy_nodes.txt` by hand — it is the same
+`<dirname> <git_url> <commit_sha>` format the image uses for its own nodes. The
+sha is optional (omit it to track the default branch), and a bare git URL works.
+
+**What it costs.** Restoring a handful of nodes adds roughly 10–25 seconds to a
+cold boot, mostly pip; the wheel cache lives on the volume, so later boots are
+faster. Progress is logged to `/workspace/comfy_nodes.log`.
+
+**When to graduate a node into the image instead.** The pin list is for nodes
+you are trying out or that change often. Once you have settled on one
+permanently, add it to `node_pins.txt` and rebuild: the build takes ~3 minutes
+because everything heavy comes from the base image, and a baked node costs
+**nothing** at boot because it and its dependencies are already installed. If
+your boot is getting slow, that is the signal to promote your pinned nodes.
+
+Two guarantees, both enforced in CI: the manifest can never modify or overwrite
+one of the 29 bundled packs, and a node whose repo has moved, been deleted or
+gone private is logged and skipped — it can never stop the pod from booting.
+
 ## What persists
 
 Everything below lives on your network volume and survives pod deletion:
 
 ```
 /workspace/
+  comfy_nodes.txt    your pinned custom nodes (see above)
+  comfy_nodes.log    what the last restore did
+  pip-cache/         wheel cache, makes later boots faster
   sillytavern/
     data/            chats, characters, personas, settings, API keys
     config/          SillyTavern server config and your stored password
@@ -205,6 +263,9 @@ Only these files differ, which keeps syncing changes from upstream a small diff:
 - `Dockerfile` — layers on the base image instead of building from CUDA
 - `scripts/start.sh` — the base entrypoint plus one SillyTavern block
 - `scripts/st_setup.sh`, `scripts/ci_st_gate.sh`, `st_pin.txt` — new
+- `scripts/node_manifest.sh`, `scripts/restore_nodes.sh`, `scripts/comfy-nodes`,
+  `scripts/ci_nodes_gate.sh` — new; custom-node persistence, worth porting
+  upstream to ComfyUI-Ultimate since the base image has the same limitation
 - `.github/workflows/build.yml` — no CUDA compile, plus the auth gate
 
 ## Credits and license
