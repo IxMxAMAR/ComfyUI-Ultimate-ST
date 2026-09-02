@@ -26,6 +26,7 @@ ComfyUI on first use.
 - [Generating images inside a chat](#generating-images-inside-a-chat)
 - [Services and ports](#services-and-ports)
 - [Environment variables](#environment-variables)
+- [Keeping custom nodes across rebuilds](#keeping-custom-nodes-across-rebuilds)
 - [What persists](#what-persists)
 - [Troubleshooting](#troubleshooting)
 - [Updating](#updating)
